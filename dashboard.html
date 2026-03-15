@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Intelligence · Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <i class="fas fa-cloud-sun-rain"></i>
+      </div>
+      <div>
+        <h2>AI Weather</h2>
+        <small>Smart climate monitoring dashboard</small>
+      </div>
+    </div>
+
+    <div class="nav-links">
+      <a href="#"><i class="fas fa-home"></i>Home</a>
+      <a href="#" class="active"><i class="fas fa-chart-line"></i>Dashboard</a>
+      <a href="#"><i class="fas fa-fire"></i>Heatmap</a>
+      <a href="#"><i class="fas fa-water"></i>Rainfall</a>
+    </div>
+
+    <div class="nav-meta">
+      <i class="fas fa-map-pin"></i>
+      <span id="gps-indicator">25.3176°N, 82.9739°E</span>
+    </div>
+  </nav>
+
+  <main class="dashboard-container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-badge">
+          <i class="fas fa-satellite-dish"></i>
+          Live Weather Monitoring Enabled
+        </div>
+        <h1>Weather Intelligence Dashboard for smarter, faster climate decisions</h1>
+        <p>
+          Monitor local conditions, rainfall patterns, stability alerts, and AI-powered climate insights
+          from one responsive dashboard. Built for clarity, better decisions, and real-time weather visibility.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary">
+            <i class="fas fa-chart-area"></i>
+            View Insights
+          </button>
+          <button class="btn btn-light" onclick="simulateScenario('normal')">
+            <i class="fas fa-location-crosshairs"></i>
+            Refresh Conditions
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="mini-panel">
+          <h3><i class="fas fa-cloud-sun"></i> Current Snapshot</h3>
+          <div class="big-temp" id="heroTemp">32°C</div>
+          <p id="heroSummary">
+            Moderate heat levels, low wind flow, and stable rainfall behavior currently detected around your monitored region.
+          </p>
+        </div>
+
+        <div class="status-strip">
+          <div class="strip-box">
+            <span>Air Condition</span>
+            <strong id="airConditionText">Clear & Stable</strong>
+          </div>
+          <div class="strip-box">
+            <span>Alert Level</span>
+            <strong id="alertLevelText">Low Risk</strong>
+          </div>
+          <div class="strip-box">
+            <span>Monitoring Mode</span>
+            <strong>Live GPS</strong>
+          </div>
+          <div class="strip-box">
+            <span>Insight Engine</span>
+            <strong>AI Active</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div>
+            <div class="stat-label">Temperature</div>
+            <div class="stat-value" id="tempStat">32°C</div>
+            <div class="stat-sub">Current local reading</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-temperature-three-quarters"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <div>
+            <div class="stat-label">Wind Speed</div>
+            <div class="stat-value" id="windStat">4.1 m/s</div>
+            <div class="stat-sub">Low atmospheric movement</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-wind"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <div>
+            <div class="stat-label">Pressure</div>
+            <div class="stat-value" id="pressureStat">101200</div>
+            <div class="stat-sub">Pa atmospheric pressure</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-gauge-high"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <div>
+            <div class="stat-label">Weekly Rainfall</div>
+            <div class="stat-value" id="rainStat">12 mm</div>
+            <div class="stat-sub">Latest measured average</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-cloud-rain"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><i class="fas fa-location-dot"></i> Your Current Location</h2>
+      <p class="subtext">
+        The system automatically detects your device location to provide accurate weather insights for your surrounding region.
+      </p>
+
+      <div class="location-box" id="coordDisplay">
+        Latitude: 25.3176<br />
+        Longitude: 82.9739
+      </div>
+
+      <div class="live-line">
+        <i class="fas fa-sync-alt fa-spin"></i>
+        <span>Using GPS (simulated live update)</span>
+      </div>
+
+      <div class="highlight-row">
+        <div class="highlight-card">
+          <span>Region Status</span>
+          <strong>Varanasi Sector Active</strong>
+        </div>
+        <div class="highlight-card">
+          <span>Precision</span>
+          <strong>High Accuracy Mapping</strong>
+        </div>
+        <div class="highlight-card">
+          <span>Tracking Source</span>
+          <strong>Geo-based Monitoring</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h3><i class="fas fa-sun"></i> Current Weather Conditions</h3>
+        <ul class="metric-list">
+          <li>
+            <div class="metric-left">
+              <i class="fas fa-thermometer-half"></i>
+              Temperature
+            </div>
+            <strong id="tempMetric">32°C</strong>
+          </li>
+          <li>
+            <div class="metric-left">
+              <i class="fas fa-wind"></i>
+              Wind Speed
+            </div>
+            <strong id="windMetric">4.1 m/s</strong>
+          </li>
+          <li>
+            <div class="metric-left">
+              <i class="fas fa-gauge-high"></i>
+              Atmospheric Pressure
+            </div>
+            <strong id="pressureMetric">101200 Pa</strong>
+          </li>
+          <li>
+            <div class="metric-left">
+              <i class="fas fa-droplet"></i>
+              Weekly Rainfall
+            </div>
+            <strong id="rainMetric">12 mm</strong>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card" id="stabilityCard">
+        <h3><i class="fas fa-scale-balanced"></i> Weather Stability Status</h3>
+        <div
+          class="status-badge"
+          id="statusBadge"
+          style="background: var(--success-bg); color: var(--success-text);"
+        >
+          <i class="fas fa-circle-check"></i> Status: Stable
+        </div>
+        <p class="subtext" id="statusDescription">
+          Temperature variation is moderate and rainfall levels remain normal. No immediate climate risks detected.
+        </p>
+
+        <button id="toggleRiskBtn" class="action-btn">
+          <i class="fas fa-rotate"></i> Simulate Warning
+        </button>
+
+        <div class="highlight-row" style="margin-top: 1.3rem;">
+          <div class="highlight-card">
+            <span>Temperature Trend</span>
+            <strong id="trendStatus">Moderately Rising</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Rainfall Pattern</span>
+            <strong id="rainPattern">Within Safe Range</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Risk Outlook</span>
+            <strong id="riskOutlook">Currently Minimal</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="chart-card-header">
+        <div>
+          <h2><i class="fas fa-chart-line"></i> Daily Temperature Trend</h2>
+          <p class="subtext">
+            This chart represents daily temperature readings recorded around your location. It helps identify warming or cooling patterns over time.
+          </p>
+        </div>
+        <div class="pill-info">
+          <i class="fas fa-arrow-trend-up"></i>
+          5-Day Monitoring
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+      </div>
+
+      <div class="chart-footer">
+        <span class="data-chip">📅 15 Jul → 31.2°C</span>
+        <span class="data-chip">📅 16 Jul → 32.0°C</span>
+        <span class="data-chip">📅 17 Jul → 33.1°C</span>
+        <span class="data-chip">📅 18 Jul → 32.5°C</span>
+        <span class="data-chip">📅 19 Jul → 31.8°C</span>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: 1.5rem;">
+      <div class="chart-card-header">
+        <div>
+          <h2><i class="fas fa-chart-bar"></i> Weekly Rainfall Trend</h2>
+          <p class="subtext">
+            This chart shows the amount of rainfall recorded each week. It helps identify seasonal rainfall patterns and possible drought or flooding conditions.
+          </p>
+        </div>
+        <div class="pill-info">
+          <i class="fas fa-cloud-showers-heavy"></i>
+          Rainfall Analytics
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="rainChart"></canvas>
+      </div>
+
+      <div class="chart-footer">
+        <span class="data-chip">Week 1 → 12 mm</span>
+        <span class="data-chip">Week 2 → 18 mm</span>
+        <span class="data-chip">Week 3 → 5 mm</span>
+        <span class="data-chip">Week 4 → 22 mm</span>
+        <span class="data-chip">Week 5 → 15 mm</span>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Climate Risk Detection</h3>
+
+        <div id="riskMessage" class="risk-box">
+          <span style="font-weight:800;">⏳ Evaluating Risk</span><br />
+          Analyzing current weather conditions and generating dynamic climate risk output.
+        </div>
+
+        <div class="risk-tags">
+          <span class="risk-tag heatwave"><i class="fas fa-fire"></i> Heatwave</span>
+          <span class="risk-tag flood"><i class="fas fa-water"></i> Flood</span>
+          <span class="risk-tag drought"><i class="fas fa-seedling"></i> Drought</span>
+          <span class="risk-tag storm"><i class="fas fa-cloud-bolt"></i> Storm</span>
+          <span class="risk-tag mixed"><i class="fas fa-triangle-exclamation"></i> Mixed Risk</span>
+        </div>
+
+        <div class="highlight-row" style="margin-top: 1.3rem;">
+          <div class="highlight-card">
+            <span>Primary Risk</span>
+            <strong id="primaryRisk">Normal</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Severity</span>
+            <strong id="riskSeverity">Low</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Recommendation</span>
+            <strong id="riskAdvice">No action needed</strong>
+          </div>
+        </div>
+
+        <div class="scenario-buttons">
+          <button class="action-btn" onclick="simulateScenario('normal')">Normal</button>
+          <button class="action-btn" onclick="simulateScenario('heatwave')">Heatwave</button>
+          <button class="action-btn" onclick="simulateScenario('flood')">Flood</button>
+          <button class="action-btn" onclick="simulateScenario('drought')">Drought</button>
+          <button class="action-btn" onclick="simulateScenario('storm')">Storm</button>
+          <button class="action-btn" onclick="simulateScenario('mixed')">Mixed Risk</button>
+        </div>
+
+        <p class="subtext" style="margin-top: 1rem;">
+          Climate risk output changes dynamically according to weather values like temperature, rainfall, wind speed, humidity, and pressure.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-brain"></i> AI Climate Insight</h3>
+
+        <div class="insight-message" id="insightText">
+          Temperature levels have shown a gradual increase over the past few days, while rainfall levels remain moderate. These conditions indicate a stable weather pattern with no significant environmental risks at the moment.
+        </div>
+
+        <button id="refreshInsightBtn" class="action-btn">
+          <i class="fas fa-lightbulb"></i> Update Insight
+        </button>
+
+        <div class="highlight-row" style="margin-top: 1.3rem;">
+          <div class="highlight-card">
+            <span>Model Confidence</span>
+            <strong id="confidenceText">High</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Prediction Basis</span>
+            <strong id="predictionBasis">Weather + Rainfall</strong>
+          </div>
+          <div class="highlight-card">
+            <span>Current Output</span>
+            <strong id="currentOutput">Stable Pattern</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="dashboard-note">
+      <i class="fas fa-check-circle" style="color:#1f7b4d;"></i>
+      Dashboard includes dynamic climate risk detection with multiple scenario outputs.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <h3>AI Weather Intelligence Platform</h3>
+        <p>
+          Built to simplify environmental data analysis through location-based weather monitoring,
+          climate visualization, climate risk tracking, and intelligent AI-driven insight generation.
+        </p>
+      </div>
+
+      <div>
+        <h4>Technologies Used</h4>
+        <p>Node.js • MongoDB • JavaScript • Leaflet Maps • Chart.js</p>
+      </div>
+
+      <div>
+        <h4>Platform Focus</h4>
+        <p>Responsive UI • Real-time Visualization • Smart Monitoring • Climate Analytics</p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span><i class="fas fa-copyright"></i> 2025 · Climate Intelligence</span>
+      <span>Designed for a professional, modern, user-friendly dashboard experience</span>
+    </div>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

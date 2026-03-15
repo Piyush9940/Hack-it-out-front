@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Weather Intelligence · Landing</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+    <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="navbar-wrap">
+    <nav class="navbar">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-cloud-sun-rain"></i>
+        </div>
+        <div class="logo-text">
+          <h2>AI Weather Intelligence</h2>
+          <p>Climate monitoring · GPS-based insights</p>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <a href="#" class="active">Home</a>
+        <a href="#features">Features</a>
+        <a href="heatmap.html">Heatmap</a>
+        <a href="#how-it-works">Workflow</a>
+        <a href="rainfall.html">Rainfall</a>
+        <a href="#faq">FAQ</a>
+      </div>
+
+      <div class="gps-chip">
+        <span class="gps-dot"></span>
+        Interactive Demo Ready
+      </div>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-text">
+        <div class="hero-kicker">
+          <i class="fas fa-satellite-dish"></i>
+          Real-time location-based environmental intelligence
+        </div>
+
+        <h1>
+          Smart Weather Monitoring
+          <br />
+          and <span>Climate Intelligence</span>
+        </h1>
+
+        <div class="hero-tagline">
+          A practical, user-friendly platform for GPS-based weather insights,
+          temperature heatmaps, rainfall analytics, and climate risk awareness.
+        </div>
+
+        <p class="hero-description">
+          <strong>This platform uses device location to deliver localized weather intelligence</strong>
+          through a clean and interactive interface. It turns stored environmental data
+          into heatmaps, trend charts, and meaningful alerts so users can understand
+          weather conditions faster and more clearly.
+        </p>
+
+        <div class="hero-actions">
+          <a href="dashboard.html" class="btn-primary" id="startBtn">
+            <i class="fas fa-play"></i>
+            Open Dashboard
+          </a>
+          <button class="btn-secondary" id="detectLocationBtn">
+            <i class="fas fa-location-crosshairs"></i>
+            Detect My Location
+          </button>
+          <a href="#features" class="btn-ghost">
+            <i class="fas fa-circle-info"></i>
+            Explore Features
+          </a>
+        </div>
+
+        <div class="hero-badges">
+          <span class="hero-badge"><i class="fas fa-location-dot"></i> Device GPS</span>
+          <span class="hero-badge"><i class="fas fa-temperature-high"></i> Daily Temperature</span>
+          <span class="hero-badge"><i class="fas fa-cloud-rain"></i> Weekly Rainfall</span>
+          <span class="hero-badge"><i class="fas fa-triangle-exclamation"></i> Smart Alerts</span>
+        </div>
+
+        <div class="hero-mini-strip">
+          <div class="mini-strip-card">
+            <i class="fas fa-map-location-dot"></i>
+            <h4>Location First</h4>
+            <p>Automatically centers weather intelligence around the user’s current area.</p>
+          </div>
+          <div class="mini-strip-card">
+            <i class="fas fa-chart-column"></i>
+            <h4>Visual Insights</h4>
+            <p>Turns raw records into cleaner views through maps, charts, and alert summaries.</p>
+          </div>
+          <div class="mini-strip-card">
+            <i class="fas fa-shield-halved"></i>
+            <h4>Risk Awareness</h4>
+            <p>Supports early awareness for heatwave, drought, and flood-related conditions.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hero-image-wrap">
+            <img
+              class="hero-image"
+              src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80"
+              alt="Weather and climate visual"
+            />
+            <div class="hero-image-badge">
+              <i class="fas fa-chart-line"></i>
+              Live Climate Preview
+            </div>
+          </div>
+
+          <h3>Live Preview Panel</h3>
+          <p>
+            This preview shows how the landing page can already feel useful instead of
+            decorative. Interactions below simulate real platform behavior for users.
+          </p>
+
+          <div class="status-panel" id="statusPanel">
+            <span class="status-pill pill-ok">System Ready</span>
+            <span class="status-pill pill-info">Waiting for GPS</span>
+            <span class="status-pill pill-warn">Rainfall Weekly Mode</span>
+          </div>
+
+          <div class="preview-grid">
+            <div class="preview-box">
+              <h4><i class="fas fa-location-dot"></i> Location Status</h4>
+              <p id="locationStatus">Click “Detect My Location” to simulate GPS-based access.</p>
+            </div>
+            <div class="preview-box">
+              <h4><i class="fas fa-temperature-three-quarters"></i> Temperature Mode</h4>
+              <p>Daily temperature records can be mapped into an interactive heatmap layer.</p>
+            </div>
+            <div class="preview-box">
+              <h4><i class="fas fa-cloud-rain"></i> Rainfall Mode</h4>
+              <p>Weekly rainfall is better shown using charts, summaries, and drought/flood alerts.</p>
+            </div>
+            <div class="preview-box">
+              <h4><i class="fas fa-shield-heart"></i> Risk Engine</h4>
+              <p>Backend logic can flag heatwave, flood, or drought trends based on thresholds.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-up section-soft-bg">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fas fa-location-dot"></i>
+          <h3 class="counter" data-target="100">0</h3>
+          <p>GPS-first experience</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-temperature-half"></i>
+          <h3 class="counter" data-target="7">0</h3>
+          <p>Daily temp cycle</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-cloud-showers-heavy"></i>
+          <h3 class="counter" data-target="52">0</h3>
+          <p>Weekly rainfall view</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-triangle-exclamation"></i>
+          <h3 class="counter" data-target="3">0</h3>
+          <p>Key risk types</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-left">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Why Weather Intelligence Matters</h2>
+          <p class="section-subtitle">
+            Weather data is useful only when people can actually understand it.
+            This platform focuses on making climate information visual, local, and actionable.
+          </p>
+        </div>
+      </div>
+
+      <div class="why-grid">
+        <div class="glass-card">
+          <img
+            class="why-image"
+            src="https://images.unsplash.com/photo-1498925008800-019c7d59d903?auto=format&fit=crop&w=1200&q=80"
+            alt="Weather dashboard preview"
+          />
+          <p>
+            Raw weather records are often too technical for quick interpretation.
+            Instead of expecting users to understand datasets manually, this platform
+            converts climate data into a friendlier experience with interactive maps,
+            charts, summaries, and contextual alerts.
+          </p>
+          <br />
+          <p>
+            The goal is not just to display data, but to help users understand what
+            it means for their location. That makes the product more practical for
+            students, researchers, planners, and public-facing users.
+          </p>
+        </div>
+
+        <div class="glass-card why-side">
+          <div class="why-pill">Visual over raw data</div>
+          <div class="why-pill">Local context through GPS</div>
+          <div class="why-pill">Better understanding through insights</div>
+          <div class="why-pill">Professional dashboard-ready experience</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-up" id="features">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Interactive Feature Overview</h2>
+          <p class="section-subtitle">
+            Click the tabs below to explore how each core module works.
+          </p>
+        </div>
+      </div>
+
+      <div class="feature-tabs">
+        <button class="feature-tab active" data-target="tab1">Temperature Heatmap</button>
+        <button class="feature-tab" data-target="tab2">Rainfall Trends</button>
+        <button class="feature-tab" data-target="tab3">Location Monitoring</button>
+        <button class="feature-tab" data-target="tab4">Risk Detection</button>
+      </div>
+
+      <div class="feature-panel active" id="tab1">
+        <div class="feature-large">
+          <img
+            class="feature-img"
+            src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80"
+            alt="Temperature heatmap visual"
+          />
+          <h3>Temperature Heatmap</h3>
+          <p>
+            The temperature heatmap converts nearby daily temperature points into a
+            spatial visualization. This helps users quickly identify warm zones,
+            local hotspots, and potential heat concentration patterns around them.
+          </p>
+        </div>
+        <div class="feature-side">
+          <h3>Why it matters</h3>
+          <ul>
+            <li>Best for daily location-based temperature analysis</li>
+            <li>Easy to understand visually</li>
+            <li>Ideal for heatwave-oriented insights</li>
+          </ul>
+
+          <div class="feature-mini-grid">
+            <div class="feature-mini-card">Daily hotspot awareness</div>
+            <div class="feature-mini-card">Map-friendly temperature visibility</div>
+            <div class="feature-mini-card">Useful for public and research views</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-panel" id="tab2">
+        <div class="feature-large">
+          <img
+            class="feature-img"
+            src="https://images.unsplash.com/photo-1501691223387-dd0500403074?auto=format&fit=crop&w=1200&q=80"
+            alt="Rainfall trend visual"
+          />
+          <h3>Rainfall Trend Analysis</h3>
+          <p>
+            Rainfall is better understood through weekly trends rather than heatmaps.
+            This module focuses on rainfall charts, pattern summaries, and risk alerts
+            for drought or excess precipitation.
+          </p>
+        </div>
+        <div class="feature-side">
+          <h3>Why it matters</h3>
+          <ul>
+            <li>Clear weekly analysis</li>
+            <li>Helps identify low and high precipitation periods</li>
+            <li>Supports drought and flood awareness</li>
+          </ul>
+
+          <div class="feature-mini-grid">
+            <div class="feature-mini-card">Weekly trend-based interpretation</div>
+            <div class="feature-mini-card">Better than forcing rain into heatmaps</div>
+            <div class="feature-mini-card">Cleaner environmental storytelling</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-panel" id="tab3">
+        <div class="feature-large">
+          <img
+            class="feature-img"
+            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80"
+            alt="Location monitoring visual"
+          />
+          <h3>Location-Based Monitoring</h3>
+          <p>
+            The platform detects the user's device location and uses those coordinates
+            to fetch and process nearby weather records. This makes the experience
+            more personal and more relevant to the user's current area.
+          </p>
+        </div>
+        <div class="feature-side">
+          <h3>Why it matters</h3>
+          <ul>
+            <li>No manual location input needed</li>
+            <li>Improves relevance of results</li>
+            <li>Makes the product more user-friendly</li>
+          </ul>
+
+          <div class="feature-mini-grid">
+            <div class="feature-mini-card">Personalized climate context</div>
+            <div class="feature-mini-card">Immediate local relevance</div>
+            <div class="feature-mini-card">Smooth user flow into dashboard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-panel" id="tab4">
+        <div class="feature-large">
+          <img
+            class="feature-img"
+            src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+            alt="Risk detection visual"
+          />
+          <h3>Climate Risk Detection</h3>
+          <p>
+            The system evaluates processed temperature and rainfall patterns to produce
+            easy-to-understand alerts such as heatwave warnings, drought indicators,
+            and flood-risk notifications.
+          </p>
+        </div>
+        <div class="feature-side">
+          <h3>Why it matters</h3>
+          <ul>
+            <li>Turns analysis into action</li>
+            <li>Useful for awareness and response planning</li>
+            <li>Makes the dashboard feel intelligent</li>
+          </ul>
+
+          <div class="feature-mini-grid">
+            <div class="feature-mini-card">Heatwave warnings</div>
+            <div class="feature-mini-card">Flood-risk visibility</div>
+            <div class="feature-mini-card">Drought alert support</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-right" id="how-it-works">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">How the System Works</h2>
+          <p class="section-subtitle">
+            Click any step to highlight the platform workflow.
+          </p>
+        </div>
+      </div>
+
+      <div class="how-grid" id="workflowGrid">
+        <div class="step-card active">
+          <div class="step-num">1</div>
+          <h4>Detect Location</h4>
+          <p>Browser GPS gets the user's latitude and longitude.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h4>Send Coordinates</h4>
+          <p>Frontend sends lat/lng to the backend API.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h4>Fetch Records</h4>
+          <p>Backend queries nearby MongoDB weather records.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h4>Process Data</h4>
+          <p>Backend creates summaries, trends, and alerts.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">5</div>
+          <h4>Display Results</h4>
+          <p>Dashboard shows maps, charts, and insights.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-up">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Who Can Benefit</h2>
+          <p class="section-subtitle">
+            The platform is designed for both technical and general audiences.
+          </p>
+        </div>
+      </div>
+
+      <div class="users-wrap">
+        <div class="user-chip"><i class="fas fa-flask"></i> Environmental Researchers</div>
+        <div class="user-chip"><i class="fas fa-helmet-safety"></i> Disaster Management Teams</div>
+        <div class="user-chip"><i class="fas fa-tractor"></i> Agricultural Planners</div>
+        <div class="user-chip"><i class="fas fa-graduation-cap"></i> Students and Educators</div>
+        <div class="user-chip"><i class="fas fa-chart-pie"></i> Climate Analysts</div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-up" id="faq">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p class="section-subtitle">
+            A few quick clarifications users often need before opening the dashboard.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item active">
+          <button class="faq-question">
+            Does this platform use my device location?
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            Yes. The website can use browser geolocation to get latitude and longitude,
+            which are then used to fetch nearby weather data and generate local insights.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Why is rainfall shown weekly instead of as a heatmap?
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            Rainfall is collected weekly in your workflow, so charts and weekly summaries
+            are more accurate and easier to understand than forcing it into a daily heatmap.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            What makes this platform feel intelligent?
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            The platform does more than display records. It processes data into summaries,
+            patterns, and risk alerts such as heatwave, flood, and drought indicators.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reveal slide-up">
+      <div class="cta">
+        <h2>Make Weather Records Useful, Not Just Visible</h2>
+        <p>
+          Start with a location-aware dashboard that feels practical, understandable,
+          and interactive from the first click.
+        </p>
+        <a href="dashboard.html" class="btn-primary" id="ctaBtn">
+          <i class="fas fa-arrow-right"></i>
+          Go to Dashboard
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <h4><i class="fas fa-cloud-sun-rain"></i> AI Weather Intelligence Platform</h4>
+        <p>
+          Built to simplify environmental data analysis through location-based weather
+          monitoring, heatmaps, rainfall analytics, and readable climate insights.
+        </p>
+      </div>
+
+      <div>
+        <h4>Technologies Used</h4>
+        <div class="tech-list">
+          <span class="tech-pill">Node.js</span>
+          <span class="tech-pill">MongoDB</span>
+          <span class="tech-pill">JavaScript</span>
+          <span class="tech-pill">Leaflet Maps</span>
+          <span class="tech-pill">Chart.js</span>
+        </div>
+      </div>
+
+      <div>
+        <h4>Platform Focus</h4>
+        <p>
+          GPS-based user experience, daily temperature heatmaps, weekly rainfall
+          trends, and smart environmental risk awareness.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 AI Weather Intelligence Platform</span>
+      <span>Interactive landing page · location-aware climate experience</span>
+    </div>
+  </footer>
+
+  <script src="index.js"></script>
+</body>
+</html>
