@@ -65,7 +65,6 @@
       margin: auto;
     }
 
-    /* navbar */
     .navbar {
       position: sticky;
       top: 0;
@@ -135,7 +134,6 @@
       gap: 8px;
     }
 
-    /* hero */
     .hero {
       padding: 38px 0 22px;
     }
@@ -232,7 +230,6 @@
       line-height: 1.8;
     }
 
-    /* sections */
     main {
       padding-bottom: 50px;
     }
@@ -267,7 +264,6 @@
       margin-top: 16px;
     }
 
-    /* chart */
     .chart-top {
       display: flex;
       justify-content: space-between;
@@ -325,7 +321,6 @@
       font-size: 0.94rem;
     }
 
-    /* table */
     .table-wrap {
       overflow-x: auto;
     }
@@ -359,7 +354,6 @@
       border-bottom: none;
     }
 
-    /* summary stats */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -401,7 +395,6 @@
       font-weight: 600;
     }
 
-    /* risk alerts */
     .alerts-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -452,7 +445,6 @@
       color: #c08614;
     }
 
-    /* insight */
     .insight {
       background: linear-gradient(140deg, rgba(219,240,250,0.9), rgba(245,251,255,0.92));
       border-radius: 28px;
@@ -477,7 +469,6 @@
       font-weight: 600;
     }
 
-    /* footer */
     .footer {
       margin-top: 48px;
       background: linear-gradient(135deg, #143244, #193f54);
@@ -503,7 +494,6 @@
       color: #cde0ec;
     }
 
-    /* responsive */
     @media (max-width: 1024px) {
       .hero-wrap {
         grid-template-columns: 1fr;
@@ -616,9 +606,8 @@
           <h1><i class="fas fa-cloud-rain"></i> Rainfall Trend Analysis</h1>
           <p>
             <strong>This section analyzes weekly rainfall patterns recorded around your location.</strong>
-            Understanding rainfall trends helps identify possible drought conditions or excessive rainfall
-            that may lead to flooding. This improved layout is designed to feel lighter, cleaner,
-            and more fluid instead of heavy and boxy.
+            This page uses live backend rainfall data to highlight rainfall patterns,
+            possible drought conditions, and excessive rainfall that may lead to flooding.
           </p>
 
           <div class="hero-badges">
@@ -739,7 +728,7 @@
           </div>
 
           <p class="note">
-            <i class="fas fa-calculator"></i> Based on recent 4 completed weeks
+            <i class="fas fa-calculator"></i> Based on recent rainfall analysis
           </p>
         </div>
       </section>
@@ -782,8 +771,7 @@
 
       <p class="footnote">
         <i class="fas fa-check-circle" style="color:#1f8a4b;"></i>
-        Improved with softer visuals, lighter cards, rounded flow, better spacing,
-        and a less boxy modern dashboard style.
+        Live rainfall analytics with responsive charts, dynamic summaries, and backend-driven risk signals.
       </p>
     </div>
   </main>
@@ -814,24 +802,143 @@
   </footer>
 
   <script>
-    (function () {
-      const ctx = document.getElementById("rainfallChart")?.getContext("2d");
+    (() => {
+      const API_BASE = "https://hack-it-out-s7yt.onrender.com/api/weather";
 
-      if (ctx) {
-        new Chart(ctx, {
+      let rainfallChartInstance = null;
+
+      const navCoord = document.getElementById("navCoord");
+      const heroStatusValue = document.querySelector(".big-value");
+      const heroStatusText = document.querySelector(".hero-side p");
+      const weekPoints = document.querySelector(".week-points");
+      const insightBox = document.querySelector(".insight");
+
+      const summaryCards = document.querySelectorAll(".stat-card .stat-value");
+      const summaryLabels = document.querySelectorAll(".stat-card .stat-label");
+
+      const floodBox = document.querySelector(".alert-flood");
+      const droughtBox = document.querySelector(".alert-drought");
+
+      function formatNumber(value, digits = 1) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+          return "N/A";
+        }
+        return Number(value).toFixed(digits);
+      }
+
+      function formatDateLabel(dateValue) {
+        if (!dateValue) return "N/A";
+        const d = new Date(dateValue);
+        if (Number.isNaN(d.getTime())) return "N/A";
+        return d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short"
+        });
+      }
+
+      function setNavLocation(lat, lng) {
+        if (!navCoord) return;
+        navCoord.innerHTML = `
+          <i class="fas fa-map-pin"></i>
+          <span>${Number(lat).toFixed(4)}°N, ${Number(lng).toFixed(4)}°E</span>
+        `;
+      }
+
+      function buildWeekLabel(item, index) {
+        if (item?.week_start) return formatDateLabel(item.week_start);
+        return `Week ${index + 1}`;
+      }
+
+      function updateHeroStatus(trend) {
+        if (!heroStatusValue || !heroStatusText) return;
+
+        if (!trend || !trend.length) {
+          heroStatusValue.textContent = "Unavailable";
+          heroStatusText.textContent = "Rainfall trend data is not available for the selected location right now.";
+          return;
+        }
+
+        const values = trend.map(item => Number(item.precipitation_mm) || 0);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+
+        let title = "Balanced";
+        let text =
+          "Recent rainfall remains mostly within a moderate range, showing a stable precipitation pattern.";
+
+        if (max > 30) {
+          title = "Watchful";
+          text =
+            "One or more recent rainfall periods are elevated, which may indicate localized overflow or waterlogging risk.";
+        } else if (avg < 5 || min < 3) {
+          title = "Dry Shift";
+          text =
+            "Recent rainfall is trending low, which may suggest dry environmental conditions and possible drought pressure.";
+        } else if (avg > 15) {
+          title = "Moist";
+          text =
+            "Rainfall activity is above the normal band but still within a manageable range for most areas.";
+        }
+
+        heroStatusValue.textContent = title;
+        heroStatusText.textContent = text;
+      }
+
+      function renderWeekPoints(trend) {
+        if (!weekPoints) return;
+
+        if (!trend || !trend.length) {
+          weekPoints.innerHTML = `
+            <div class="week-chip">
+              <strong>No Data</strong>
+              <span>Rainfall unavailable</span>
+            </div>
+          `;
+          return;
+        }
+
+        weekPoints.innerHTML = trend.slice(0, 5).map((item, index) => {
+          const value = Number(item.precipitation_mm) || 0;
+          const label = buildWeekLabel(item, index);
+          return `
+            <div class="week-chip">
+              <strong>${label}</strong>
+              <span>${formatNumber(value)} mm</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderRainfallChart(trend) {
+        const canvas = document.getElementById("rainfallChart");
+        if (!canvas) return;
+
+        const labels = trend?.length
+          ? trend.slice(0, 5).map((item, index) => buildWeekLabel(item, index))
+          : ["No Data"];
+
+        const values = trend?.length
+          ? trend.slice(0, 5).map(item => Number(item.precipitation_mm) || 0)
+          : [0];
+
+        const colors = values.map(value => {
+          if (value < 5) return "rgba(241, 167, 37, 0.88)";
+          if (value > 30) return "rgba(220, 68, 58, 0.84)";
+          if (value > 15) return "rgba(93, 166, 207, 0.82)";
+          return "rgba(47, 139, 183, 0.82)";
+        });
+
+        if (rainfallChartInstance) rainfallChartInstance.destroy();
+
+        rainfallChartInstance = new Chart(canvas.getContext("2d"), {
           type: "bar",
           data: {
-            labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"],
+            labels,
             datasets: [{
               label: "Rainfall (mm)",
-              data: [12, 18, 5, 22, 15],
-              backgroundColor: [
-                "rgba(47, 139, 183, 0.82)",
-                "rgba(47, 139, 183, 0.82)",
-                "rgba(241, 167, 37, 0.88)",
-                "rgba(47, 139, 183, 0.82)",
-                "rgba(93, 166, 207, 0.82)"
-              ],
+              data: values,
+              backgroundColor: colors,
               borderRadius: 14,
               borderSkipped: false,
               maxBarThickness: 52
@@ -871,7 +978,7 @@
               },
               y: {
                 beginAtZero: true,
-                suggestedMax: 30,
+                suggestedMax: Math.max(30, ...values, 10),
                 ticks: {
                   stepSize: 5,
                   color: "#355264",
@@ -897,17 +1004,198 @@
         });
       }
 
-      const navCoord = document.getElementById("navCoord");
-      if (navCoord) {
-        const baseLat = 25.3176;
-        const baseLon = 82.9739;
+      function updateSummaryCards(trend, summary) {
+        if (summaryCards.length < 3 || summaryLabels.length < 3) return;
 
-        setInterval(() => {
-          const newLat = (baseLat + (Math.random() * 0.006 - 0.003)).toFixed(4);
-          const newLon = (baseLon + (Math.random() * 0.006 - 0.003)).toFixed(4);
-          navCoord.innerHTML = `<i class="fas fa-map-pin"></i><span>${newLat}°N, ${newLon}°E</span>`;
-        }, 9000);
+        const values = trend?.length
+          ? trend.map(item => Number(item.precipitation_mm) || 0)
+          : [];
+
+        const average =
+          summary?.average_precipitation_mm ??
+          summary?.average ??
+          (values.length ? values.reduce((a, b) => a + b, 0) / values.length : null);
+
+        const highest =
+          summary?.highest_precipitation_mm ??
+          summary?.max ??
+          (values.length ? Math.max(...values) : null);
+
+        const lowest =
+          summary?.lowest_precipitation_mm ??
+          summary?.min ??
+          (values.length ? Math.min(...values) : null);
+
+        summaryCards[0].textContent = average != null ? `${formatNumber(average)} mm` : "N/A";
+        summaryCards[1].textContent = highest != null ? `${formatNumber(highest)} mm` : "N/A";
+        summaryCards[2].textContent = lowest != null ? `${formatNumber(lowest)} mm` : "N/A";
+
+        summaryLabels[0].textContent = "Average Weekly Rainfall";
+        summaryLabels[1].textContent = "Highest Rainfall Week";
+        summaryLabels[2].textContent = "Lowest Rainfall Week";
       }
+
+      function updateRiskBoxes(trend) {
+        if (!floodBox || !droughtBox) return;
+
+        const values = trend?.length
+          ? trend.map(item => Number(item.precipitation_mm) || 0)
+          : [];
+
+        const max = values.length ? Math.max(...values) : 0;
+        const min = values.length ? Math.min(...values) : 0;
+
+        const floodTitle = floodBox.querySelector("h3");
+        const floodText = floodBox.querySelector("p");
+        const droughtTitle = droughtBox.querySelector("h3");
+        const droughtText = droughtBox.querySelector("p");
+
+        if (max > 30) {
+          floodTitle.textContent = "Flood Risk Alert";
+          floodText.textContent =
+            "Recent rainfall levels are significantly higher than the normal threshold. Such conditions may increase the risk of flooding in low-lying or poorly drained areas.";
+        } else {
+          floodTitle.textContent = "Flood Risk Low";
+          floodText.textContent =
+            "Recent rainfall levels are not showing extreme spikes, so immediate flood risk appears limited for the monitored region.";
+        }
+
+        if (min < 5) {
+          droughtTitle.textContent = "Drought Warning";
+          droughtText.textContent =
+            "Rainfall levels have been very low in at least one recent period. This may indicate dry environmental conditions and possible drought stress.";
+        } else {
+          droughtTitle.textContent = "Dryness Risk Low";
+          droughtText.textContent =
+            "Rainfall has stayed above the severe dry threshold in recent periods, so short-term drought risk currently appears lower.";
+        }
+      }
+
+      function updateInsight(trend, insightData) {
+        if (!insightBox) return;
+
+        let text = "";
+
+        if (typeof insightData === "string") {
+          text = insightData;
+        } else if (insightData?.message) {
+          text = insightData.message;
+        } else if (insightData?.summary) {
+          text = insightData.summary;
+        } else if (trend?.length) {
+          const values = trend.map(item => Number(item.precipitation_mm) || 0);
+          const avg = values.reduce((a, b) => a + b, 0) / values.length;
+          const max = Math.max(...values);
+          const min = Math.min(...values);
+
+          if (max > 30) {
+            text =
+              "Rainfall patterns show at least one unusually high precipitation period, which may increase local runoff or flooding risk if the trend continues.";
+          } else if (min < 5) {
+            text =
+              "Rainfall patterns indicate one or more dry periods, suggesting that soil moisture and water availability should be monitored closely.";
+          } else if (avg >= 5 && avg <= 15) {
+            text =
+              "Rainfall levels have remained fairly stable across recent weeks, with no major deviations from normal precipitation patterns.";
+          } else {
+            text =
+              "Rainfall patterns are moderately active, indicating a wetter-than-usual but not extreme precipitation phase for the monitored area.";
+          }
+        } else {
+          text = "Rainfall insight is not available right now.";
+        }
+
+        insightBox.innerHTML = `<i class="fas fa-quote-left"></i>${text}`;
+      }
+
+      async function fetchRainfall(lat, lng) {
+        const res = await fetch(`${API_BASE}/rainfall?lat=${lat}&lng=${lng}`);
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || result.message || "Failed to load rainfall data");
+        }
+
+        return result.data;
+      }
+
+      async function fetchSummary(lat, lng) {
+        const res = await fetch(`${API_BASE}/summary?lat=${lat}&lng=${lng}`);
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          return null;
+        }
+
+        return result.data;
+      }
+
+      async function loadRainfallPage(lat, lng) {
+        try {
+          setNavLocation(lat, lng);
+
+          const [rainfallData, summaryData] = await Promise.all([
+            fetchRainfall(lat, lng),
+            fetchSummary(lat, lng)
+          ]);
+
+          const trend =
+            rainfallData.rainfallTrend ||
+            rainfallData.next7DaysRainfallTrend ||
+            [];
+
+          renderRainfallChart(trend);
+          renderWeekPoints(trend);
+          updateHeroStatus(trend);
+          updateSummaryCards(trend, rainfallData.rainfallSummary);
+          updateRiskBoxes(trend);
+          updateInsight(trend, summaryData?.insight);
+        } catch (error) {
+          console.error("Rainfall page load failed:", error);
+
+          if (insightBox) {
+            insightBox.innerHTML = `<i class="fas fa-quote-left"></i>Unable to load live rainfall insight from the backend right now.`;
+          }
+
+          if (weekPoints) {
+            weekPoints.innerHTML = `
+              <div class="week-chip">
+                <strong>Error</strong>
+                <span>Backend unavailable</span>
+              </div>
+            `;
+          }
+
+          if (heroStatusValue) heroStatusValue.textContent = "Unavailable";
+          if (heroStatusText) {
+            heroStatusText.textContent =
+              "Live rainfall data could not be loaded for the selected location.";
+          }
+        }
+      }
+
+      function initLocationLoad() {
+        if (!navigator.geolocation) {
+          loadRainfallPage(25.3176, 82.9739);
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            loadRainfallPage(position.coords.latitude, position.coords.longitude);
+          },
+          () => {
+            loadRainfallPage(25.3176, 82.9739);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+          }
+        );
+      }
+
+      initLocationLoad();
     })();
   </script>
 </body>

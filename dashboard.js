@@ -1,378 +1,529 @@
- (function () {
-      const tempCtx = document.getElementById("tempChart")?.getContext("2d");
-      if (tempCtx) {
-        new Chart(tempCtx, {
-          type: "line",
-          data: {
-            labels: ["15 Jul", "16 Jul", "17 Jul", "18 Jul", "19 Jul"],
-            datasets: [{
-              label: "Temperature °C",
-              data: [31.2, 32.0, 33.1, 32.5, 31.8],
-              borderColor: "#d96c2b",
-              backgroundColor: "rgba(247,179,126,0.25)",
-              tension: 0.35,
-              fill: true,
-              pointBackgroundColor: "#c05e20",
-              pointBorderColor: "#ffffff",
-              pointBorderWidth: 2,
-              pointRadius: 5
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: "#163e51",
-                padding: 12,
-                cornerRadius: 12,
-                displayColors: false
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: "#557386" }
-              },
-              y: {
-                grid: { color: "rgba(20, 72, 95, 0.08)" },
-                ticks: { color: "#557386" }
-              }
-            }
-          }
-        });
-      }
+(() => {
+  const API_BASE = "https://hack-it-out-s7yt.onrender.com/api/weather";
 
-      const rainCtx = document.getElementById("rainChart")?.getContext("2d");
-      if (rainCtx) {
-        new Chart(rainCtx, {
-          type: "bar",
-          data: {
-            labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"],
-            datasets: [{
-              label: "Rainfall (mm)",
-              data: [12, 18, 5, 22, 15],
-              backgroundColor: [
-                "#4ea3cb",
-                "#3b95c0",
-                "#76bbdb",
-                "#2d7ea7",
-                "#5caed3"
-              ],
-              borderRadius: 14,
-              borderSkipped: false
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: "#163e51",
-                padding: 12,
-                cornerRadius: 12,
-                displayColors: false
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: "#557386" }
-              },
-              y: {
-                grid: { color: "rgba(20, 72, 95, 0.08)" },
-                ticks: { color: "#557386" }
-              }
-            }
-          }
-        });
-      }
+  let tempChartInstance = null;
+  let rainChartInstance = null;
 
-      const coordDisplay = document.getElementById("coordDisplay");
-      const gpsSpan = document.getElementById("gps-indicator");
+  const coordDisplay = document.getElementById("coordDisplay");
+  const gpsSpan = document.getElementById("gps-indicator");
 
-      function randomizeCoord() {
-        const baseLat = 25.3176;
-        const baseLon = 82.9739;
-        const newLat = (baseLat + (Math.random() * 0.01 - 0.005)).toFixed(4);
-        const newLon = (baseLon + (Math.random() * 0.01 - 0.005)).toFixed(4);
+  const tempFooter = document.querySelector("#tempChart")?.closest(".card")?.querySelector(".chart-footer");
+  const rainFooter = document.querySelector("#rainChart")?.closest(".card")?.querySelector(".chart-footer");
 
-        if (coordDisplay) {
-          coordDisplay.innerHTML = `Latitude: ${newLat}<br>Longitude: ${newLon}`;
-        }
+  function formatNumber(value, digits = 1) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return "N/A";
+    return Number(value).toFixed(digits);
+  }
 
-        if (gpsSpan) {
-          gpsSpan.innerText = `${newLat}°N, ${newLon}°E`;
-        }
-      }
+  function formatDateLabel(dateValue) {
+    if (!dateValue) return "N/A";
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return "N/A";
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short"
+    });
+  }
 
-      setInterval(randomizeCoord, 7000);
+  function formatWeekLabel(item, index) {
+    if (item?.week_start) return formatDateLabel(item.week_start);
+    return `Week ${index + 1}`;
+  }
 
-      function evaluateClimateRisk(data) {
-        const { temperature, rainfall, windSpeed, pressure, humidity } = data;
+  function setLocation(lat, lng) {
+    const latText = `${Number(lat).toFixed(4)}°N`;
+    const lngText = `${Number(lng).toFixed(4)}°E`;
 
-        let riskType = "Normal";
-        let severity = "Low";
-        let message = "Weather conditions are stable. No extreme climate risks detected in the current dataset.";
-        let advice = "No action needed";
-        let bg = "linear-gradient(145deg, #eef8fc, #e3f2f9)";
-        let color = "#23485a";
-        let insight = "Temperature levels have shown a gradual increase over the past few days, while rainfall levels remain moderate. These conditions indicate a stable weather pattern with no significant environmental risks at the moment.";
-        let currentOutput = "Stable Pattern";
-        let alertLevel = "Low Risk";
-        let airCondition = "Clear & Stable";
-        let confidence = "High";
+    if (coordDisplay) {
+      coordDisplay.innerHTML = `Latitude: ${Number(lat).toFixed(4)}<br>Longitude: ${Number(lng).toFixed(4)}`;
+    }
 
-        if (temperature >= 38 && rainfall >= 60 && windSpeed >= 10) {
-          riskType = "Mixed Climate Risk";
-          severity = "Critical";
-          message = "Multiple environmental indicators are outside safe ranges. Combined heat, rainfall, and wind conditions may create severe local climate hazards.";
-          advice = "Issue public alert and monitor continuously";
-          bg = "linear-gradient(145deg, #ffe4e4, #ffd1d1)";
-          color = "#9f1f1f";
-          insight = "A mixed-risk climate situation has been identified. Simultaneous extreme heat, rainfall, and wind may create rapidly changing environmental hazards.";
-          currentOutput = "Critical Multi-Factor Risk";
-          alertLevel = "Critical";
-          airCondition = "Highly Unstable";
-          confidence = "Very High";
-        } else if (temperature >= 40) {
-          riskType = "Heatwave Warning";
-          severity = "High";
-          message = "Temperature levels have exceeded safe thresholds. High temperatures may cause heat stress and dehydration risks.";
-          advice = "Avoid outdoor exposure and stay hydrated";
-          bg = "linear-gradient(145deg, #ffe9e2, #ffd8cb)";
-          color = "#a63f20";
-          insight = "Extreme temperature conditions indicate rising heat stress risk. Outdoor activities should be minimized during peak daytime hours.";
-          currentOutput = "Heat Stress Alert";
-          alertLevel = "High Risk";
-          airCondition = "Hot & Dry";
-          confidence = "High";
-        } else if (rainfall >= 80) {
-          riskType = "Flood Risk Alert";
-          severity = "High";
-          message = "Rainfall levels are significantly above average. Flooding may occur in low-lying or poorly drained areas.";
-          advice = "Monitor water levels and avoid flood-prone zones";
-          bg = "linear-gradient(145deg, #e3f3ff, #cfe9ff)";
-          color = "#1d6696";
-          insight = "Persistent high rainfall indicates overflow potential in vulnerable zones. Surface water accumulation and drainage pressure may increase rapidly.";
-          currentOutput = "Heavy Rainfall Risk";
-          alertLevel = "High Risk";
-          airCondition = "Wet & Unstable";
-          confidence = "High";
-        } else if (rainfall <= 5 && temperature >= 35) {
-          riskType = "Drought Risk Detected";
-          severity = "Medium";
-          message = "Rainfall levels remain critically low while heat persists, indicating dry environmental conditions and possible drought development.";
-          advice = "Conserve water and monitor agricultural impact";
-          bg = "linear-gradient(145deg, #fff4df, #ffe8bf)";
-          color = "#9b6a18";
-          insight = "Low rainfall combined with sustained heat suggests prolonged dryness. Water resource pressure and agricultural stress may gradually rise.";
-          currentOutput = "Dryness Risk Rising";
-          alertLevel = "Medium Risk";
-          airCondition = "Dry & Warm";
-          confidence = "Moderate";
-        } else if (windSpeed >= 14 || pressure <= 99000 || humidity >= 90) {
-          riskType = "Storm Risk";
-          severity = "High";
-          message = "Strong wind movement or abnormal pressure patterns suggest unstable atmospheric conditions and possible storm activity.";
-          advice = "Avoid travel and secure exposed objects";
-          bg = "linear-gradient(145deg, #edeaff, #dcd5ff)";
-          color = "#5e46a1";
-          insight = "Atmospheric instability is increasing due to intense wind flow and pressure abnormalities. Sudden storm development is possible.";
-          currentOutput = "Storm Probability Elevated";
-          alertLevel = "High Risk";
-          airCondition = "Windy & Unstable";
-          confidence = "High";
-        }
+    if (gpsSpan) {
+      gpsSpan.textContent = `${latText}, ${lngText}`;
+    }
+  }
 
-        return {
-          riskType,
-          severity,
-          message,
-          advice,
-          bg,
-          color,
-          insight,
-          currentOutput,
-          alertLevel,
-          airCondition,
-          confidence
-        };
-      }
+  function updateMetricCards(temp, rain) {
+    const temperature = temp?.temperature_c;
+    const windSpeed = temp?.wind_speed_ms;
+    const pressure = temp?.pressure_pa;
+    const rainfall = rain?.precipitation_mm;
 
-      function updateMetricCards(data) {
-        document.getElementById("tempStat").textContent = `${data.temperature}°C`;
-        document.getElementById("windStat").textContent = `${data.windSpeed} m/s`;
-        document.getElementById("pressureStat").textContent = `${data.pressure}`;
-        document.getElementById("rainStat").textContent = `${data.rainfall} mm`;
+    const map = {
+      tempStat: temperature != null ? `${formatNumber(temperature)}°C` : "N/A",
+      windStat: windSpeed != null ? `${formatNumber(windSpeed)} m/s` : "N/A",
+      pressureStat: pressure != null ? `${Math.round(Number(pressure))}` : "N/A",
+      rainStat: rainfall != null ? `${formatNumber(rainfall)} mm` : "N/A",
 
-        document.getElementById("tempMetric").textContent = `${data.temperature}°C`;
-        document.getElementById("windMetric").textContent = `${data.windSpeed} m/s`;
-        document.getElementById("pressureMetric").textContent = `${data.pressure} Pa`;
-        document.getElementById("rainMetric").textContent = `${data.rainfall} mm`;
+      tempMetric: temperature != null ? `${formatNumber(temperature)}°C` : "N/A",
+      windMetric: windSpeed != null ? `${formatNumber(windSpeed)} m/s` : "N/A",
+      pressureMetric: pressure != null ? `${Math.round(Number(pressure))} Pa` : "N/A",
+      rainMetric: rainfall != null ? `${formatNumber(rainfall)} mm` : "N/A",
 
-        document.getElementById("heroTemp").textContent = `${data.temperature}°C`;
-      }
+      heroTemp: temperature != null ? `${formatNumber(temperature)}°C` : "N/A"
+    };
 
-      function updateClimateRiskUI(data) {
-        updateMetricCards(data);
+    Object.entries(map).forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    });
+  }
 
-        const result = evaluateClimateRisk(data);
+  function getRiskMeta(risk) {
+    const raw =
+      risk?.status ||
+      risk?.level ||
+      risk?.riskLevel ||
+      risk?.type ||
+      "Normal";
 
-        const riskMsgDiv = document.getElementById("riskMessage");
-        const primaryRisk = document.getElementById("primaryRisk");
-        const riskSeverity = document.getElementById("riskSeverity");
-        const riskAdvice = document.getElementById("riskAdvice");
-        const insightText = document.getElementById("insightText");
-        const currentOutput = document.getElementById("currentOutput");
-        const alertLevelText = document.getElementById("alertLevelText");
-        const airConditionText = document.getElementById("airConditionText");
-        const confidenceText = document.getElementById("confidenceText");
-        const heroSummary = document.getElementById("heroSummary");
-        const statusBadge = document.getElementById("statusBadge");
-        const statusDescription = document.getElementById("statusDescription");
-        const trendStatus = document.getElementById("trendStatus");
-        const rainPattern = document.getElementById("rainPattern");
-        const riskOutlook = document.getElementById("riskOutlook");
+    const riskText = String(raw).toLowerCase();
 
-        let icon = "✅";
-        if (result.riskType.includes("Heatwave")) icon = "🔥";
-        else if (result.riskType.includes("Flood")) icon = "🌊";
-        else if (result.riskType.includes("Drought")) icon = "🏜️";
-        else if (result.riskType.includes("Storm")) icon = "⛈️";
-        else if (result.riskType.includes("Mixed")) icon = "🚨";
-
-        riskMsgDiv.style.background = result.bg;
-        riskMsgDiv.style.color = result.color;
-        riskMsgDiv.innerHTML = `
-          <span style="font-weight:800;">${icon} ${result.riskType}</span><br>
-          ${result.message}
-        `;
-
-        primaryRisk.textContent = result.riskType;
-        riskSeverity.textContent = result.severity;
-        riskAdvice.textContent = result.advice;
-        insightText.textContent = result.insight;
-        currentOutput.textContent = result.currentOutput;
-        alertLevelText.textContent = result.alertLevel;
-        airConditionText.textContent = result.airCondition;
-        confidenceText.textContent = result.confidence;
-        heroSummary.textContent = `Current analysis shows ${result.airCondition.toLowerCase()} conditions with ${result.alertLevel.toLowerCase()} across the monitored region.`;
-
-        if (result.riskType === "Normal") {
-          statusBadge.style.background = "#d9f3e5";
-          statusBadge.style.color = "#146a49";
-          statusBadge.innerHTML = `<i class="fas fa-circle-check"></i> Status: Stable`;
-          statusDescription.textContent = "Temperature variation is moderate and rainfall levels remain normal. No immediate climate risks detected.";
-          trendStatus.textContent = "Moderately Rising";
-          rainPattern.textContent = "Within Safe Range";
-          riskOutlook.textContent = "Currently Minimal";
-        } else {
-          statusBadge.style.background = "#fff1dc";
-          statusBadge.style.color = "#a7590f";
-          statusBadge.innerHTML = `<i class="fas fa-triangle-exclamation"></i> Status: Warning`;
-          statusDescription.textContent = result.message;
-          trendStatus.textContent = data.temperature >= 38 ? "Rapid Temperature Rise" : "Pattern Shift Detected";
-          rainPattern.textContent = data.rainfall >= 80 ? "Heavy Rainfall Spike" : data.rainfall <= 5 ? "Below Normal" : "Unstable";
-          riskOutlook.textContent = result.severity;
-        }
-      }
-
-      window.simulateScenario = function(type) {
-        let scenario = {};
-
-        switch (type) {
-          case "heatwave":
-            scenario = {
-              temperature: 43,
-              rainfall: 8,
-              windSpeed: 3,
-              pressure: 101500,
-              humidity: 30
-            };
-            break;
-
-          case "flood":
-            scenario = {
-              temperature: 29,
-              rainfall: 95,
-              windSpeed: 8,
-              pressure: 100200,
-              humidity: 88
-            };
-            break;
-
-          case "drought":
-            scenario = {
-              temperature: 37,
-              rainfall: 2,
-              windSpeed: 4,
-              pressure: 101300,
-              humidity: 25
-            };
-            break;
-
-          case "storm":
-            scenario = {
-              temperature: 30,
-              rainfall: 40,
-              windSpeed: 16,
-              pressure: 98500,
-              humidity: 92
-            };
-            break;
-
-          case "mixed":
-            scenario = {
-              temperature: 39,
-              rainfall: 85,
-              windSpeed: 12,
-              pressure: 98900,
-              humidity: 90
-            };
-            break;
-
-          default:
-            scenario = {
-              temperature: 32,
-              rainfall: 12,
-              windSpeed: 4.1,
-              pressure: 101200,
-              humidity: 58
-            };
-        }
-
-        updateClimateRiskUI(scenario);
+    if (riskText.includes("heat")) {
+      return {
+        icon: "🔥",
+        title: "Heatwave Warning",
+        severity: "High",
+        badgeHtml: `<i class="fas fa-triangle-exclamation"></i> Status: Warning`
       };
+    }
 
-      const toggleBtn = document.getElementById("toggleRiskBtn");
-      let warningState = false;
+    if (riskText.includes("flood")) {
+      return {
+        icon: "🌊",
+        title: "Flood Risk Alert",
+        severity: "High",
+        badgeHtml: `<i class="fas fa-triangle-exclamation"></i> Status: Warning`
+      };
+    }
 
-      if (toggleBtn) {
-        toggleBtn.addEventListener("click", function () {
-          if (!warningState) {
-            simulateScenario("heatwave");
-            warningState = true;
-          } else {
-            simulateScenario("normal");
-            warningState = false;
+    if (riskText.includes("drought")) {
+      return {
+        icon: "🏜️",
+        title: "Drought Risk Detected",
+        severity: "Medium",
+        badgeHtml: `<i class="fas fa-triangle-exclamation"></i> Status: Warning`
+      };
+    }
+
+    if (riskText.includes("storm")) {
+      return {
+        icon: "⛈️",
+        title: "Storm Risk",
+        severity: "High",
+        badgeHtml: `<i class="fas fa-triangle-exclamation"></i> Status: Warning`
+      };
+    }
+
+    if (riskText.includes("mixed") || riskText.includes("critical")) {
+      return {
+        icon: "🚨",
+        title: "Mixed Climate Risk",
+        severity: "Critical",
+        badgeHtml: `<i class="fas fa-triangle-exclamation"></i> Status: Warning`
+      };
+    }
+
+    return {
+      icon: "✅",
+      title: "Normal",
+      severity: "Low",
+      badgeHtml: `<i class="fas fa-circle-check"></i> Status: Stable`
+    };
+  }
+
+  function updateRiskUI(risk, latestTemperature, latestRainfall) {
+    const riskMessage = document.getElementById("riskMessage");
+    const primaryRisk = document.getElementById("primaryRisk");
+    const riskSeverity = document.getElementById("riskSeverity");
+    const riskAdvice = document.getElementById("riskAdvice");
+    const currentOutput = document.getElementById("currentOutput");
+    const alertLevelText = document.getElementById("alertLevelText");
+    const airConditionText = document.getElementById("airConditionText");
+    const confidenceText = document.getElementById("confidenceText");
+    const heroSummary = document.getElementById("heroSummary");
+    const statusBadge = document.getElementById("statusBadge");
+    const statusDescription = document.getElementById("statusDescription");
+    const trendStatus = document.getElementById("trendStatus");
+    const rainPattern = document.getElementById("rainPattern");
+    const riskOutlook = document.getElementById("riskOutlook");
+
+    const meta = getRiskMeta(risk);
+
+    const message =
+      risk?.message ||
+      risk?.summary ||
+      risk?.description ||
+      "Weather conditions are stable. No extreme climate risks detected in the current dataset.";
+
+    const recommendation =
+      risk?.advice ||
+      risk?.recommendation ||
+      "Continue monitoring current environmental conditions.";
+
+    const confidence =
+      risk?.confidence ||
+      "High";
+
+    const tempValue = latestTemperature?.temperature_c;
+    const rainValue = latestRainfall?.precipitation_mm;
+
+    if (riskMessage) {
+      riskMessage.innerHTML = `
+        <span style="font-weight:800;">${meta.icon} ${meta.title}</span><br>
+        ${message}
+      `;
+    }
+
+    if (primaryRisk) primaryRisk.textContent = meta.title;
+    if (riskSeverity) riskSeverity.textContent = meta.severity;
+    if (riskAdvice) riskAdvice.textContent = recommendation;
+    if (currentOutput) currentOutput.textContent = meta.title;
+    if (alertLevelText) alertLevelText.textContent = meta.severity === "Low" ? "Low Risk" : `${meta.severity} Risk`;
+    if (confidenceText) confidenceText.textContent = confidence;
+
+    if (airConditionText) {
+      if (meta.title.includes("Heat")) airConditionText.textContent = "Hot & Dry";
+      else if (meta.title.includes("Flood")) airConditionText.textContent = "Wet & Unstable";
+      else if (meta.title.includes("Storm")) airConditionText.textContent = "Windy & Unstable";
+      else if (meta.title.includes("Drought")) airConditionText.textContent = "Dry & Warm";
+      else if (meta.title.includes("Mixed")) airConditionText.textContent = "Highly Unstable";
+      else airConditionText.textContent = "Clear & Stable";
+    }
+
+    if (heroSummary) {
+      heroSummary.textContent =
+        message.length > 140 ? `${message.slice(0, 140)}...` : message;
+    }
+
+    if (statusBadge) {
+      if (meta.severity === "Low") {
+        statusBadge.style.background = "#d9f3e5";
+        statusBadge.style.color = "#146a49";
+      } else {
+        statusBadge.style.background = "#fff1dc";
+        statusBadge.style.color = "#a7590f";
+      }
+      statusBadge.innerHTML = meta.badgeHtml;
+    }
+
+    if (statusDescription) statusDescription.textContent = message;
+    if (trendStatus) trendStatus.textContent = tempValue >= 38 ? "Rapid Temperature Rise" : "Moderately Rising";
+    if (rainPattern) {
+      if (rainValue >= 80) rainPattern.textContent = "Heavy Rainfall Spike";
+      else if (rainValue <= 5) rainPattern.textContent = "Below Normal";
+      else rainPattern.textContent = "Within Safe Range";
+    }
+    if (riskOutlook) riskOutlook.textContent = meta.severity === "Low" ? "Currently Minimal" : meta.severity;
+  }
+
+  function updateInsightUI(insight) {
+    const insightText = document.getElementById("insightText");
+
+    let text = "No AI insight available right now.";
+
+    if (typeof insight === "string") {
+      text = insight;
+    } else if (insight?.message) {
+      text = insight.message;
+    } else if (insight?.summary) {
+      text = insight.summary;
+    } else if (insight?.insight) {
+      text = insight.insight;
+    }
+
+    if (insightText) insightText.textContent = text;
+  }
+
+  function renderTempFooter(trend) {
+    if (!tempFooter) return;
+
+    if (!trend?.length) {
+      tempFooter.innerHTML = `<span class="data-chip">No temperature trend data available</span>`;
+      return;
+    }
+
+    tempFooter.innerHTML = trend
+      .slice(0, 5)
+      .map(item => {
+        const label = formatDateLabel(item.time || item.createdAt);
+        const value = item.temperature_c != null ? `${formatNumber(item.temperature_c)}°C` : "N/A";
+        return `<span class="data-chip">📅 ${label} → ${value}</span>`;
+      })
+      .join("");
+  }
+
+  function renderRainFooter(trend) {
+    if (!rainFooter) return;
+
+    if (!trend?.length) {
+      rainFooter.innerHTML = `<span class="data-chip">No rainfall trend data available</span>`;
+      return;
+    }
+
+    rainFooter.innerHTML = trend
+      .slice(0, 5)
+      .map((item, index) => {
+        const label = formatWeekLabel(item, index);
+        const value = item.precipitation_mm != null ? `${formatNumber(item.precipitation_mm)} mm` : "N/A";
+        return `<span class="data-chip">${label} → ${value}</span>`;
+      })
+      .join("");
+  }
+
+  function renderTemperatureChart(trend) {
+    const tempCanvas = document.getElementById("tempChart");
+    if (!tempCanvas) return;
+
+    const labels = trend?.length
+      ? trend.map(item => formatDateLabel(item.time || item.createdAt))
+      : ["No Data"];
+
+    const values = trend?.length
+      ? trend.map(item => Number(item.temperature_c) || 0)
+      : [0];
+
+    if (tempChartInstance) tempChartInstance.destroy();
+
+    tempChartInstance = new Chart(tempCanvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Temperature °C",
+          data: values,
+          borderColor: "#d96c2b",
+          backgroundColor: "rgba(247,179,126,0.25)",
+          tension: 0.35,
+          fill: true,
+          pointBackgroundColor: "#c05e20",
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 2,
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#163e51",
+            padding: 12,
+            cornerRadius: 12,
+            displayColors: false
           }
-        });
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: "#557386" }
+          },
+          y: {
+            grid: { color: "rgba(20, 72, 95, 0.08)" },
+            ticks: { color: "#557386" }
+          }
+        }
+      }
+    });
+
+    renderTempFooter(trend);
+  }
+
+  function renderRainChart(trend) {
+    const rainCanvas = document.getElementById("rainChart");
+    if (!rainCanvas) return;
+
+    const labels = trend?.length
+      ? trend.map((item, index) => formatWeekLabel(item, index))
+      : ["No Data"];
+
+    const values = trend?.length
+      ? trend.map(item => Number(item.precipitation_mm) || 0)
+      : [0];
+
+    if (rainChartInstance) rainChartInstance.destroy();
+
+    rainChartInstance = new Chart(rainCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Rainfall (mm)",
+          data: values,
+          backgroundColor: [
+            "#4ea3cb",
+            "#3b95c0",
+            "#76bbdb",
+            "#2d7ea7",
+            "#5caed3"
+          ],
+          borderRadius: 14,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#163e51",
+            padding: 12,
+            cornerRadius: 12,
+            displayColors: false
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: "#557386" }
+          },
+          y: {
+            grid: { color: "rgba(20, 72, 95, 0.08)" },
+            ticks: { color: "#557386" }
+          }
+        }
+      }
+    });
+
+    renderRainFooter(trend);
+  }
+
+  async function fetchDashboard(lat, lng) {
+    const res = await fetch(`${API_BASE}/dashboard?lat=${lat}&lng=${lng}`);
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      throw new Error(result.error || result.message || "Failed to load dashboard data");
+    }
+
+    return result.data;
+  }
+
+  async function loadDashboard(lat, lng) {
+    try {
+      setLocation(lat, lng);
+
+      const data = await fetchDashboard(lat, lng);
+
+      updateMetricCards(data.latestTemperature, data.latestRainfall);
+      updateRiskUI(data.risk, data.latestTemperature, data.latestRainfall);
+      updateInsightUI(data.insight);
+      renderTemperatureChart(data.temperatureTrend || data.next7DaysTemperatureTrend || []);
+      renderRainChart(data.rainfallTrend || data.next7DaysRainfallTrend || []);
+
+      window.__weatherDashboardData = data;
+    } catch (error) {
+      console.error("Dashboard load failed:", error);
+
+      const insightText = document.getElementById("insightText");
+      const riskMessage = document.getElementById("riskMessage");
+
+      if (insightText) {
+        insightText.textContent = "Backend data could not be loaded right now. Please try again.";
       }
 
-      const refreshBtn = document.getElementById("refreshInsightBtn");
-      const insightScenarios = ["normal", "heatwave", "flood", "drought", "storm", "mixed"];
-      let insightIndex = 0;
-
-      if (refreshBtn) {
-        refreshBtn.addEventListener("click", function () {
-          insightIndex = (insightIndex + 1) % insightScenarios.length;
-          simulateScenario(insightScenarios[insightIndex]);
-        });
+      if (riskMessage) {
+        riskMessage.innerHTML = `
+          <span style="font-weight:800;">⚠️ Data Load Error</span><br>
+          Unable to fetch live climate data from the backend.
+        `;
       }
+    }
+  }
 
-      simulateScenario("normal");
-      console.log("Responsive dynamic professional dashboard ready");
-    })();
+  function loadWithGeolocation() {
+    if (!navigator.geolocation) {
+      loadDashboard(25.3176, 82.9739);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        loadDashboard(lat, lng);
+      },
+      () => {
+        loadDashboard(25.3176, 82.9739);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  }
+
+  window.simulateScenario = function(type) {
+    const fakeMap = {
+      normal: {
+        status: "Normal",
+        message: "Weather conditions are stable. No extreme climate risks detected in the current dataset.",
+        recommendation: "No action needed",
+        confidence: "High"
+      },
+      heatwave: {
+        status: "Heatwave Warning",
+        message: "Temperature levels have exceeded safe thresholds. High temperatures may cause heat stress and dehydration risks.",
+        recommendation: "Avoid outdoor exposure and stay hydrated",
+        confidence: "High"
+      },
+      flood: {
+        status: "Flood Risk Alert",
+        message: "Rainfall levels are significantly above average. Flooding may occur in low-lying or poorly drained areas.",
+        recommendation: "Monitor water levels and avoid flood-prone zones",
+        confidence: "High"
+      },
+      drought: {
+        status: "Drought Risk Detected",
+        message: "Rainfall levels remain critically low while heat persists, indicating dry environmental conditions and possible drought development.",
+        recommendation: "Conserve water and monitor agricultural impact",
+        confidence: "Moderate"
+      },
+      storm: {
+        status: "Storm Risk",
+        message: "Strong wind movement or abnormal pressure patterns suggest unstable atmospheric conditions and possible storm activity.",
+        recommendation: "Avoid travel and secure exposed objects",
+        confidence: "High"
+      },
+      mixed: {
+        status: "Mixed Climate Risk",
+        message: "Multiple environmental indicators are outside safe ranges. Combined heat, rainfall, and wind conditions may create severe local climate hazards.",
+        recommendation: "Issue public alert and monitor continuously",
+        confidence: "Very High"
+      }
+    };
+
+    const baseTemp = window.__weatherDashboardData?.latestTemperature || {};
+    const baseRain = window.__weatherDashboardData?.latestRainfall || {};
+
+    updateRiskUI(fakeMap[type] || fakeMap.normal, baseTemp, baseRain);
+    updateInsightUI((fakeMap[type] || fakeMap.normal).message);
+  };
+
+  const toggleBtn = document.getElementById("toggleRiskBtn");
+  let warningState = false;
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      if (!warningState) {
+        window.simulateScenario("heatwave");
+        warningState = true;
+      } else {
+        window.simulateScenario("normal");
+        warningState = false;
+      }
+    });
+  }
+
+  const refreshBtn = document.getElementById("refreshInsightBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      loadWithGeolocation();
+    });
+  }
+
+  loadWithGeolocation();
+})();
